@@ -12,7 +12,7 @@ const mirror = s.getAttribute("data-mirror") || false; //mirror the boundary box
 const updateInterval = s.getAttribute("data-updateInterval") || 200; //the max rate to upload images
 const scoreThreshold = s.getAttribute("data-scoreThreshold") || 0.5;
 const apiServer = s.getAttribute("data-apiServer") || window.location.origin + '/image'; //the full TensorFlow Object Detection API server url
-const imageChangeThreshold = 0.05;
+const imageChangeThreshold = s.getAttribute("data-motionThreshold") || 0.05;
 
 //Get out video element
 let v = document.getElementById(sourceVideo);
@@ -128,7 +128,7 @@ function sendImageFromCanvas() {
 
     imageCtx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, 0, 0, uploadWidth, uploadWidth * (v.videoHeight / v.videoWidth));
 
-    let imageChanged = imageChange(imageCtx, imageChangeThreshold) === true;
+    let imageChanged = imageChange(imageCtx, imageChangeThreshold);
     let enoughTime = (new Date() - lastFrameTime) > updateInterval;
 
     if (imageChanged && enoughTime) {
