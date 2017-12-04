@@ -12,8 +12,12 @@ const mirror = s.getAttribute("data-mirror") || false; //mirror the boundary box
 const scoreThreshold = s.getAttribute("data-scoreThreshold") || 0.5;
 const apiServer = s.getAttribute("data-apiServer") || window.location.origin + '/image'; //the full TensorFlow Object Detection API server url
 
-//Get out video element
-let v = document.getElementById(sourceVideo);
+//for our video selector
+let v = null;
+
+//for starting events
+let isPlaying = false,
+    gotMetadata = false;
 
 //Canvas setup
 
@@ -26,8 +30,7 @@ let drawCanvas = document.createElement('canvas');
 document.body.appendChild(drawCanvas);
 let drawCtx = drawCanvas.getContext("2d");
 
-let lastFrame = null;
-
+//draw boxes and labels on each detected object
 function drawBoxes(objects) {
 
     //clear the previous drawings
@@ -51,7 +54,6 @@ function drawBoxes(objects) {
 
     });
 }
-
 
 //Add file blob to a form and post
 function postFile(file) {
@@ -81,34 +83,47 @@ function postFile(file) {
     xhr.send(formdata);
 }
 
+//Starting events
+window.onload = () => {
+    //Video element selector
+    v = document.getElementById(sourceVideo);
 
-//Start object detection on play
-v.onplay = () => {
+    //check if metadata is ready - we need the video size
+    v.onloadedmetadata = () => {
+        gotMetadata = true;
+        if (isPlaying)
+            startObjectDetection();
+    };
+
+    //see if the video has started playing
+    v.onplaying = () => {
+        isPlaying = true;
+        if (gotMetadata) {
+            startObjectDetection();
+        }
+    };
+};
+
+//Start object detection
+function startObjectDetection() {
+
     console.log("starting object detection");
 
-    //Make sure the video size data is loaded
-    getSize = setInterval(function () {
-        if (v.videoHeight !== null && v.videoWidth > 0) {
-            clearInterval(getSize);
+    //Set canvas sizes base don input video
+    drawCanvas.width = v.videoWidth;
+    drawCanvas.height = v.videoHeight;
 
-            //Set canvas sizes based on input video
-            drawCanvas.width = v.videoWidth;
-            drawCanvas.height = v.videoHeight;
+    imageCanvas.width = uploadWidth;
+    imageCanvas.height = uploadWidth * (v.videoHeight / v.videoWidth);
 
-            //Set the image upload canvas to whatever is specified in the uploadWidth parameter
-            imageCanvas.width = uploadWidth;
-            imageCanvas.height = uploadWidth * (v.videoHeight / v.videoWidth);
+    //Some styles for the drawcanvas
+    drawCtx.lineWidth = "4";
+    drawCtx.strokeStyle = "cyan";
+    drawCtx.font = "20px Verdana";
+    drawCtx.fillStyle = "cyan";
 
-            //Some styles for the draw canvas
-            drawCtx.lineWidth = "4";
-            drawCtx.strokeStyle = "cyan";
-            drawCtx.font = "20px Verdana";
-            drawCtx.fillStyle = "cyan";
+    //Save and send the first image
+    imageCtx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, 0, 0, uploadWidth, uploadWidth * (v.videoHeight / v.videoWidth));
+    imageCanvas.toBlob(postFile, 'image/jpeg');
 
-            //Create an image and send it
-            imageCtx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, 0, 0, uploadWidth, uploadWidth * (v.videoHeight / v.videoWidth));
-            imageCanvas.toBlob(postFile, 'image/jpeg');
-        }
-    }, 50);
-
-};
+}
