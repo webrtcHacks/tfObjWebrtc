@@ -15,7 +15,7 @@ const apiServer = s.getAttribute("data-apiServer") || window.location.origin + '
 const imageChangeThreshold = s.getAttribute("data-motionThreshold") || 0.05; //how much the image can change before we trigger motion
 
 //for our video selector
-let v = null;
+let v = document.getElementById(sourceVideo);
 
 //for starting events
 let isPlaying = false,
@@ -55,7 +55,7 @@ function drawBoxes(objects) {
             x = drawCanvas.width - (x + width)
         }
 
-        drawCtx.fillText(object.class_name + " - " + Math.round(object.score * 100, 1) + "%", x + 5, y + 20);
+        drawCtx.fillText(object.class_name + " - " + Math.round(object.score * 100) + "%", x + 5, y + 20);
         drawCtx.strokeRect(x, y, width, height);
 
     });
@@ -145,29 +145,8 @@ function sendImageFromCanvas() {
     }
 }
 
-//Starting events
-window.onload = () => {
-    //Video element selector
-    v = document.getElementById(sourceVideo);
-
-    //check if metadata is ready - we need the video size
-    v.onloadedmetadata = () => {
-        gotMetadata = true;
-        if (isPlaying)
-            startObjectDetection();
-    };
-
-    //see if the video has started playing
-    v.onplaying = () => {
-        isPlaying = true;
-        if (gotMetadata) {
-            startObjectDetection();
-        }
-    };
-};
-
 //Start object detection
-function startObjectDetection(){
+function startObjectDetection() {
 
     console.log("starting object detection");
 
@@ -179,12 +158,30 @@ function startObjectDetection(){
     imageCanvas.height = uploadWidth * (v.videoHeight / v.videoWidth);
 
     //Some styles for the drawcanvas
-    drawCtx.lineWidth = "4";
+    drawCtx.lineWidth = 4;
     drawCtx.strokeStyle = "cyan";
     drawCtx.font = "20px Verdana";
     drawCtx.fillStyle = "cyan";
 
     //Now see if we should send an image
     sendImageFromCanvas();
-
 }
+
+//Starting events
+
+//check if metadata is ready - we need the video size
+v.onloadedmetadata = () => {
+    console.log("video metadata ready");
+    gotMetadata = true;
+    if (isPlaying)
+        startObjectDetection();
+};
+
+//see if the video has started playing
+v.onplaying = () => {
+    console.log("video playing");
+    isPlaying = true;
+    if (gotMetadata) {
+        startObjectDetection();
+    }
+};
