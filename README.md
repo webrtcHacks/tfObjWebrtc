@@ -32,7 +32,7 @@ docker run -it -p 5000:5000 chadhart/tensorflow-object-detection:runserver
 ```$xslt
 git clone https://github.com/webrtcHacks/tfObjWebrtc.git
 cd tfObjWebrtc
-docker run -it -p 5000:5000 --name tf-webrtchacks -v $(pwd):/code chadhart/tensorflow-object-detection:webrtchack
+docker run -it -p 5000:5000 --name tf-webrtchacks -v $(pwd):/code chadhart/tensorflow-object-detection:webrtchacks
 python setup.py install
 python server.py
 ```
